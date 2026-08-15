@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Attendance Manager</title>
+</head>
+<body style="margin:0;background:#0f172a;padding:20px 0;">
+<div style="max-width:900px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<style>
+  #cr-att{
+    --bg:#0f172a;--card-bg:#1e293b;--card-border:#334155;--text:#f8fafc;--text-muted:#94a3b8;
+    --primary:#3b82f6;--present:#10b981;--absent:#ef4444;--radius:10px;
+    background:var(--bg);color:var(--text);padding:16px;border-radius:14px;
+  }
+  #cr-att * { box-sizing:border-box; }
+  #cr-att header{text-align:center;margin-bottom:16px;}
+  #cr-att header h1{font-size:1.4rem;color:#fff;margin:0;}
+  #cr-att header p{font-size:0.82rem;color:var(--text-muted);margin-top:2px;}
+  #cr-att .card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+  #cr-att .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  @media (max-width:600px){ #cr-att .form-grid{grid-template-columns:1fr;} }
+  #cr-att label{display:block;font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;}
+  #cr-att input{width:100%;padding:9px 10px;background:#0f172a;border:1px solid var(--card-border);border-radius:6px;color:#fff;font-size:0.92rem;outline:none;}
+  #cr-att input:focus{border-color:var(--primary);}
+  #cr-att select{width:100%;padding:9px 10px;background:#0f172a;border:1px solid var(--card-border);border-radius:6px;color:#fff;font-size:0.92rem;outline:none;}
+  #cr-att select:focus{border-color:var(--primary);}
+  #cr-att .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  #cr-att button{cursor:pointer;border:none;border-radius:6px;padding:8px 14px;font-weight:600;font-size:0.83rem;transition:opacity .2s;}
+  #cr-att button:hover{opacity:.9;}
+  #cr-att .btn-primary{background:var(--primary);color:#fff;}
+  #cr-att .btn-success{background:var(--present);color:#fff;}
+  #cr-att .btn-danger{background:var(--absent);color:#fff;}
+  #cr-att .btn-secondary{background:#475569;color:#fff;}
+  #cr-att .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;}
+  #cr-att .stat-box{background:#0f172a;border:1px solid var(--card-border);border-radius:6px;padding:10px 4px;}
+  #cr-att .stat-val{font-size:1.25rem;font-weight:bold;}
+  #cr-att .stat-lbl{font-size:0.72rem;color:var(--text-muted);}
+  #cr-att .search-bar{margin:12px 0;}
+  #cr-att .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;max-height:460px;overflow-y:auto;padding-right:4px;}
+  #cr-att .student-item{background:#0f172a;border:1px solid var(--card-border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+  #cr-att .student-info{display:flex;flex-direction:column;gap:2px;}
+  #cr-att .roll-no{font-size:0.72rem;color:#38bdf8;font-weight:700;letter-spacing:.5px;}
+  #cr-att .student-name{font-size:0.86rem;font-weight:500;}
+  #cr-att .badge-btn{padding:5px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;text-transform:uppercase;}
+  #cr-att .badge-P{background:var(--present);color:#fff;}
+  #cr-att .badge-A{background:var(--absent);color:#fff;}
+  #cr-att .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.88rem;display:none;z-index:1000;box-shadow:0 4px 10px rgba(0,0,0,.4);}
+  #cr-att .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center;padding:16px;}
+  #cr-att .modal-box{background:#fff;color:#111;border-radius:12px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;padding:20px;}
+  #cr-att .modal-box h2{font-size:1.1rem;margin-bottom:10px;}
+  #cr-att .summary-pre{white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:0.85rem;background:#f1f5f9;border-radius:8px;padding:12px;line-height:1.5;color:#111;}
+  #cr-att .summary-pre .report-line{white-space:pre-wrap;}
+  #cr-att .modal-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  #cr-att .save-msg{font-size:0.8rem;color:var(--present);margin-top:8px;min-height:16px;}
+  #cr-att .badge-btn.small{font-size:0.68rem;padding:3px 8px;}
+  #cr-att .roster-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e2e8f0;}
+  #cr-att .roster-row .r-info{display:flex;flex-direction:column;}
+  #cr-att .roster-row .r-roll{font-size:0.7rem;color:#0369a1;font-weight:700;}
+  #cr-att .roster-row .r-name{font-size:0.86rem;color:#111;}
+  #cr-att .roster-row button{background:var(--absent);color:#fff;padding:5px 10px;font-size:0.72rem;}
+  #cr-att .login-overlay{position:fixed;inset:0;background:#0f172a;z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;}
+  #cr-att .login-box{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:28px 24px;max-width:360px;width:100%;}
+  #cr-att .login-box h2{color:#fff;font-size:1.2rem;margin:0 0 4px;text-align:center;}
+  #cr-att .login-box p{color:var(--text-muted);font-size:0.8rem;text-align:center;margin:0 0 18px;}
+  #cr-att .login-box label{margin-top:10px;}
+  #cr-att .login-error{color:var(--absent);font-size:0.8rem;min-height:16px;margin-top:8px;}
+  #cr-att .login-switch{font-size:0.78rem;color:var(--text-muted);text-align:center;margin-top:14px;}
+  #cr-att .login-switch a{color:var(--primary);cursor:pointer;text-decoration:underline;}
+  #cr-att .header-row{position:relative;}
+  #cr-att .header-actions{position:absolute;top:0;right:0;display:flex;gap:6px;}
+  #cr-att .logout-btn{background:#475569;color:#fff;padding:6px 12px;font-size:0.72rem;}
+  #cr-att .pass-wrap{position:relative;}
+  #cr-att .pass-wrap input{padding-right:64px;}
+  #cr-att .pass-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text-muted);font-size:0.7rem;font-weight:700;padding:4px 6px;cursor:pointer;text-transform:uppercase;letter-spacing:.3px;}
+  #cr-att .pass-toggle:hover{color:#fff;opacity:1;}
+</style>
+
+<div id="cr-att">
+
+  <div class="login-overlay" id="loginScreen">
+    <div class="login-box">
+
+      <div id="loginViewLogin">
+        <h2>Welcome back</h2>
+        <p>Log in to manage attendance</p>
+        <label for="loginUser">Username</label>
+        <input type="text" id="loginUser" placeholder="Your username" autocomplete="username">
+        <label for="loginPass">Password</label>
+        <div class="pass-wrap">
+          <input type="password" id="loginPass" placeholder="Your password" autocomplete="current-password">
+          <button type="button" class="pass-toggle" onclick="togglePassVisibility('loginPass', this)">Show</button>
+        </div>
+        <div class="login-error" id="loginError"></div>
+        <button class="btn-primary" style="width:100%;margin-top:6px;" id="loginSubmitBtn" onclick="handleLogin()">Login</button>
+        <div class="login-switch">
+          <a onclick="showVerifyView('reset')">Forgot password?</a> &bull; <a onclick="showVerifyView('new')">New user?</a>
+        </div>
+      </div>
+
+      <div id="loginViewVerify" style="display:none;">
+        <h2>Verify to continue</h2>
+        <p id="verifySubtitle">Enter the special password to continue</p>
+        <label for="masterPass">Special password</label>
+        <div class="pass-wrap">
+          <input type="password" id="masterPass" placeholder="Enter special password">
+          <button type="button" class="pass-toggle" onclick="togglePassVisibility('masterPass', this)">Show</button>
+        </div>
+        <div class="login-error" id="verifyError"></div>
+        <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="handleVerifyMaster()">Verify</button>
+        <button class="btn-secondary" style="width:100%;margin-top:8px;" onclick="showLoginView()">&larr; Back</button>
+      </div>
+
+      <div id="loginViewSetNew" style="display:none;">
+        <h2 id="setNewTitle">Set username &amp; password</h2>
+        <p>Choose a new username and password</p>
+        <label for="newLoginUser">Username</label>
+        <input type="text" id="newLoginUser" placeholder="Choose a username" autocomplete="username">
+        <label for="newLoginPass">Password</label>
+        <div class="pass-wrap">
+          <input type="password" id="newLoginPass" placeholder="Choose a password (min 4 chars)" autocomplete="new-password">
+          <button type="button" class="pass-toggle" onclick="togglePassVisibility('newLoginPass', this)">Show</button>
+        </div>
+        <div class="login-error" id="setNewError"></div>
+        <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="handleSaveNewCredentials()">Save &amp; continue</button>
+        <button class="btn-secondary" style="width:100%;margin-top:8px;" onclick="showVerifyView(verifyPurpose)">&larr; Back</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="login-overlay" id="groupScreen" style="display:none;">
+    <div class="login-box">
+      <h2>Select group</h2>
+      <p>Choose which students you want to take attendance for</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+        <button class="btn-primary" style="width:100%;" onclick="selectGroup('group3')">3rd Group</button>
+        <button class="btn-primary" style="width:100%;" onclick="selectGroup('group4')">4th Group</button>
+        <button class="btn-secondary" style="width:100%;" onclick="selectGroup('all')">Whole Class</button>
+        <button class="btn-secondary" style="width:100%;" onclick="logout()">&larr; Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainApp" style="display:none;">
+  <header class="header-row">
+    <div class="header-actions">
+      <button class="logout-btn" onclick="showGroupScreen()">&larr; Back</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <div id="loggedInAs" style="position:absolute;top:0;left:0;font-size:0.72rem;color:var(--text-muted);"></div>
+    <h1>Class Attendance Manager</h1>
+    <p>CR Assistant &bull; Saved automatically &bull; Ready to submit to teacher</p>
+  </header>
+
+  <div class="card">
+    <div class="form-grid">
+      <div>
+        <label for="className">Class / Group</label>
+        <input type="text" id="className" placeholder="e.g. 2nd Year 3-4 Group" value="2nd Year 3-4 Group">
+      </div>
+      <div>
+        <label for="subjectName">Subject / Lecture name</label>
+        <select id="subjectName">
+          <option value="Data Structures">Data Structures</option>
+          <option value="Data Structures Lab">Data Structures Lab</option>
+          <option value="Python Programming">Python Programming</option>
+          <option value="Python Programming Lab">Python Programming Lab</option>
+          <option value="Computer System Architecture">Computer System Architecture</option>
+          <option value="Discrete Mathematics">Discrete Mathematics</option>
+          <option value="Disaster Management and Preparedness" selected>Disaster Management and Preparedness</option>
+          <option value="Environmental Studies">Environmental Studies</option>
+          <option value="Punjabi (Compulsory)">Punjabi (Compulsory)</option>
+          <option value="__other__">Other subject...</option>
+        </select>
+      </div>
+      <div id="otherSubjectWrap" style="display:none;">
+        <label for="otherSubject">Enter subject name</label>
+        <input type="text" id="otherSubject" placeholder="Type subject name">
+      </div>
+      <div>
+        <label for="attDate">Date</label>
+        <input type="date" id="attDate">
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-box"><div class="stat-val" id="totalCount">56</div><div class="stat-lbl">Total</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--present)" id="presentCount">0</div><div class="stat-lbl">Present</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--absent)" id="absentCount">0</div><div class="stat-lbl">Absent</div></div>
+    </div>
+
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn-success" onclick="markAll('P')">All present</button>
+      <button class="btn-danger" onclick="markAll('A')">All absent</button>
+      <button class="btn-primary" onclick="openSummary()">📋 Submit to teacher</button>
+      <button class="btn-secondary" onclick="openRoster()">👥 Manage roster</button>
+    </div>
+    <div class="save-msg" id="saveMsg"></div>
+  </div>
+
+  <div class="card">
+    <div class="search-bar">
+      <input type="text" id="searchBox" placeholder="Search by name or roll number..." oninput="renderList()">
+    </div>
+    <div class="student-grid" id="studentContainer"></div>
+  </div>
+
+  <div id="toast" class="toast">Copied!</div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+      <h2>Attendance summary</h2>
+      <div class="summary-pre" id="summaryText"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="copySummary()">📋 Copy report</button>
+        <button class="btn-secondary" onclick="downloadImage()">🖼 Download as image</button>
+        <button class="btn-secondary" onclick="downloadSummary()">⬇ Download .txt</button>
+        <button class="btn-secondary" onclick="downloadCSV()">⬇ Download .csv</button>
+        <button class="btn-secondary" onclick="closeSummary()">&larr; Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="rosterModalOverlay">
+    <div class="modal-box">
+      <h2>Manage roster</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input type="text" id="newRoll" placeholder="Roll no" style="width:120px;">
+        <input type="text" id="newName" placeholder="Student name" style="flex:1;">
+        <button class="btn-primary" onclick="addStudentFromForm()">Add</button>
+      </div>
+      <div id="rosterAddMsg" style="font-size:0.8rem;color:var(--absent);min-height:16px;margin-bottom:6px;"></div>
+      <div id="undoBanner" style="display:none;background:#fef3c7;color:#92400e;border-radius:8px;padding:8px 10px;font-size:0.82rem;margin-bottom:10px;align-items:center;justify-content:space-between;gap:8px;">
+        <span id="undoText"></span>
+        <button onclick="undoRemove()" style="background:#f59e0b;color:#111;padding:4px 10px;font-size:0.75rem;">Undo</button>
+      </div>
+      <div id="rosterList" style="max-height:340px;overflow-y:auto;"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeRoster()">&larr; Back</button>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- Local JavaScript File -->
+<script src="script.js"></script>
+</div>
+</body>
+</html>
